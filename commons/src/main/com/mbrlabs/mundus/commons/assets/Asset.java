@@ -71,6 +71,13 @@ public abstract class Asset implements Disposable, AssetUsage {
         return "[" + getMeta().getType().toString() + "] " + file.name();
     }
 
+    public String prettyName() {
+        return file.nameWithoutExtension();
+    }
+    public String prettyType() {
+        return getMeta().getType().name();
+    }
+
     /**
      * Loads the asset.
      *

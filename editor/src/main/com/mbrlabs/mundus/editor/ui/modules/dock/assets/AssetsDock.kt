@@ -40,7 +40,6 @@ import com.kotcrab.vis.ui.widget.tabbedpane.Tab
 import com.mbrlabs.mundus.commons.assets.*
 import com.mbrlabs.mundus.commons.utils.TextureProvider
 import com.mbrlabs.mundus.editor.Mundus
-import com.mbrlabs.mundus.editor.assets.EditorModelAsset
 import com.mbrlabs.mundus.editor.core.project.ProjectManager
 import com.mbrlabs.mundus.editor.events.*
 import com.mbrlabs.mundus.editor.ui.UI
@@ -265,22 +264,22 @@ class AssetsDock : Tab(false, false),
     private inner class AssetItem(val asset: Asset) : VisTable() {
 
         private val nameLabel: VisLabel
-        private var nameTable: VisTable
         val stack = Stack()
 
         init {
             setBackground("menu-bg")
             align(Align.center)
-            nameLabel = VisLabel(asset.toString(), "tiny")
+            nameLabel = VisLabel(asset.prettyName(), "tiny")
             nameLabel.wrap = true
 
-            nameTable = VisTable()
-            nameTable.add(nameLabel).grow().top().row()
+            add(nameLabel).grow().top().center().row()
 
             loadBackground()
 
-            stack.add(nameTable)
             add(stack).grow().top().row()
+
+            Tooltip.Builder(asset.prettyType()).target(this).build()
+
 
             addListener(object : InputListener() {
                 override fun touchDown(event: InputEvent?, x: Float, y: Float, pointer: Int, button: Int): Boolean {
@@ -292,7 +291,7 @@ class AssetsDock : Tab(false, false),
                         setSelected()
 
                         if (asset is TerrainAsset) {
-                            if ( !exportTerrainAsset.hasParent())
+                            if (!exportTerrainAsset.hasParent())
                                 assetOpsMenu.addItem(exportTerrainAsset)
                         } else {
                             exportTerrainAsset.remove()
@@ -316,21 +315,18 @@ class AssetsDock : Tab(false, false),
 
         private fun loadBackground() {
             if (asset is TextureProvider) {
-                nameTable.background = thumbnailOverlay
+                //setBackground(thumbnailOverlay)
                 stack.add(Image(asset.texture))
+            } else {
+                // provide default texture
             }
         }
 
         fun toggleSelectOverlay(selected: Boolean) {
-            if (selected) {
-                // Remove the name table from stack, put the selected overlay on, then put the name table back on
-                // the stack, over top of the select overlay
-                stack.removeActor(nameTable)
+            if (selected)
                 stack.add(selectedOverlay)
-                stack.add(nameTable)
-            } else {
-                stack.removeActor(selectedOverlay)
-            }
+             else
+                 stack.removeActor(selectedOverlay)
         }
     }
 }
