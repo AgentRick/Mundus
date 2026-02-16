@@ -116,7 +116,7 @@ class AssetsDock : Tab(false, false),
         contentTable.add(bar).left().pad(2f).row()
         contentTable.add(Separator()).expandX().fillX()
         contentTable.row()
-        contentTable.add<VisTable>(filesViewContextContainer).expandX().fillX()
+        contentTable.add(filesViewContextContainer).expandX().fillX()
         contentTable.row()
         contentTable.add(createScrollPane(filesView, true)).expand().fill()
 
