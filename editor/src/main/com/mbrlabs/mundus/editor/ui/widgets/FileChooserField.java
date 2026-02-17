@@ -19,12 +19,15 @@ package com.mbrlabs.mundus.editor.ui.widgets;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.Array;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextButton;
 import com.kotcrab.vis.ui.widget.VisTextField;
 import com.kotcrab.vis.ui.widget.file.FileChooser;
-import com.kotcrab.vis.ui.widget.file.SingleFileChooserListener;
+import com.kotcrab.vis.ui.widget.file.FileChooserListener;
 import com.mbrlabs.mundus.editor.ui.UI;
+
+import java.io.FileFilter;
 
 /**
  * @author Marcus Brummer
@@ -32,16 +35,24 @@ import com.mbrlabs.mundus.editor.ui.UI;
  */
 public class FileChooserField extends VisTable {
 
-    public interface FileSelected {
+    public interface SingleFileSelected {
         void selected(FileHandle fileHandle);
     }
 
-    private int width = -1;
+    public interface MultiFileSelected {
+        void selected(Array<FileHandle> files);
+    }
+
+    private final int width;
 
     private FileChooser.SelectionMode mode = FileChooser.SelectionMode.FILES;
-    private FileSelected fileSelected;
+    private SingleFileSelected singleFileSelected;
+    private MultiFileSelected multiFileSelected;
     private final VisTextField textField;
     private final VisTextButton fcBtn;
+
+    private Boolean multiselect = false;
+    private FileFilter fileFilter = null;
 
     private String path;
     private FileHandle fileHandle;
@@ -63,17 +74,22 @@ public class FileChooserField extends VisTable {
     public void setEditable(boolean editable) {
         textField.setDisabled(!editable);
     }
+    public void setMultiselect(boolean multiSelectable) {multiselect = multiSelectable;}
+    public void setFileFilter(FileFilter filter) {fileFilter = filter;}
 
     public String getPath() {
-        return textField.getText();
+        return path;
     }
 
     public FileHandle getFile() {
         return this.fileHandle;
     }
 
-    public void setCallback(FileSelected fileSelected) {
-        this.fileSelected = fileSelected;
+    public void setSingleCallback(SingleFileSelected fileSelected) {
+        this.singleFileSelected = fileSelected;
+    }
+    public void setMultiCallback(MultiFileSelected fileSelected) {
+        this.multiFileSelected = fileSelected;
     }
 
     public void setFileMode(FileChooser.SelectionMode mode) {
@@ -107,23 +123,33 @@ public class FileChooserField extends VisTable {
                 super.clicked(event, x, y);
                 FileChooser fileChooser = UI.INSTANCE.getFileChooser();
                 fileChooser.setSelectionMode(mode);
-                fileChooser.setMultiSelectionEnabled(false);
-                fileChooser.setListener(new SingleFileChooserListener() {
-                    @Override
-                    protected void selected(FileHandle file) {
-                        fileHandle = file;
-                        path = file.path();
+                fileChooser.setMultiSelectionEnabled(multiselect);
+                fileChooser.setFileFilter(fileFilter);
 
-                        textField.setText(file.path());
-                        if (fileSelected != null) {
-                            fileSelected.selected(file);
+                fileChooser.setListener(new FileChooserListener() {
+                     @Override
+                     public void selected(Array<FileHandle> files) {
+                        fileHandle = files.first();
+                        path = files.first().path();
+
+                        textField.setText(files.first().parent().path());
+                        if (singleFileSelected != null) {
+                            singleFileSelected.selected(files.first());
+                        } else if (multiFileSelected != null) {
+                            multiFileSelected.selected(files);
                         }
                     }
+
+                    @Override
+                    public void canceled() {}
                 });
+
                 UI.INSTANCE.addActor(fileChooser.fadeIn());
             }
         });
 
     }
+
+
 
 }
