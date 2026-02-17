@@ -211,8 +211,6 @@ public class GameObject extends SimpleNode<GameObject> implements Iterable<GameO
 
     /**
      *
-     * @param component
-     * @throws InvalidComponentException
      */
     public void isComponentAddable(Component component) throws InvalidComponentException {
         // check for component of the same type
