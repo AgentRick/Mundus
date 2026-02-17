@@ -59,7 +59,7 @@ class KeyboardShortcutsDialog : BaseDialog("Keyboard Shortcuts") {
         addShortcut(keyboardShortcutManager.getKeyText(KeymapKey.SELECT_TOOL), "Select Tool", shortcutTableTwo)
         addShortcut(keyboardShortcutManager.getKeyText(KeymapKey.DEBUG_RENDER_MODE), "Debug Render Mode", shortcutTableTwo)
         addShortcut(keyboardShortcutManager.getKeyText(KeymapKey.WIREFRAME_RENDER_MODE), "Wireframe Mode", shortcutTableTwo)
-
+        addShortcut(keyboardShortcutManager.getKeyText(KeymapKey.DELETE), "Delete selected", shortcutTableTwo)
         root.add(shortcutTableTwo).top()
 
         return super.show(stage)

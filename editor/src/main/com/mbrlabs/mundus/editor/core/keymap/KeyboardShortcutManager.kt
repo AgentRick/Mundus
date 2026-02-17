@@ -41,6 +41,8 @@ class KeyboardShortcutManager(customKeyboardShortcuts: ObjectMap<String, String>
         val DEBUG_RENDER_MODE_DEFAULT_KEY = KeyboardShortcut(Input.Keys.F2, Input.Keys.CONTROL_LEFT)
         val WIREFRAME_RENDER_MODE_DEFAULT_KEY = KeyboardShortcut(Input.Keys.F3, Input.Keys.CONTROL_LEFT)
 
+        val DELETE_DEFAULT_KEY = KeyboardShortcut(Input.Keys.FORWARD_DEL)
+
         val OBJECT_SELECTION_DEFAULT_KEY = KeyboardShortcut(Input.Buttons.RIGHT)
         val LOOK_AROUND_DEFAULT_KEY = KeyboardShortcut(Input.Buttons.MIDDLE)
     }
@@ -65,6 +67,7 @@ class KeyboardShortcutManager(customKeyboardShortcuts: ObjectMap<String, String>
         keymap.put(KeymapKey.SELECT_TOOL, getKeyboardShortcut(customKeyboardShortcuts, KeymapKey.SELECT_TOOL))
         keymap.put(KeymapKey.DEBUG_RENDER_MODE, getKeyboardShortcut(customKeyboardShortcuts, KeymapKey.DEBUG_RENDER_MODE))
         keymap.put(KeymapKey.WIREFRAME_RENDER_MODE, getKeyboardShortcut(customKeyboardShortcuts, KeymapKey.WIREFRAME_RENDER_MODE))
+        keymap.put(KeymapKey.DELETE, getKeyboardShortcut(customKeyboardShortcuts, KeymapKey.DELETE))
 
         // Mouse shortcuts
         keymap.put(KeymapKey.OBJECT_SELECTION, getKeyboardShortcut(customKeyboardShortcuts, KeymapKey.OBJECT_SELECTION))
@@ -112,6 +115,7 @@ class KeyboardShortcutManager(customKeyboardShortcuts: ObjectMap<String, String>
             KeymapKey.SELECT_TOOL -> SELECT_TOOL_DEFAULT_KEY
             KeymapKey.DEBUG_RENDER_MODE -> DEBUG_RENDER_MODE_DEFAULT_KEY
             KeymapKey.WIREFRAME_RENDER_MODE -> WIREFRAME_RENDER_MODE_DEFAULT_KEY
+            KeymapKey.DELETE -> DELETE_DEFAULT_KEY
 
             KeymapKey.OBJECT_SELECTION -> OBJECT_SELECTION_DEFAULT_KEY
             KeymapKey.LOOK_AROUND -> LOOK_AROUND_DEFAULT_KEY

@@ -18,7 +18,10 @@ package com.mbrlabs.mundus.editor.input
 
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputAdapter
+import com.mbrlabs.mundus.commons.scene3d.components.Component
+import com.mbrlabs.mundus.commons.scene3d.components.TerrainComponent
 import com.mbrlabs.mundus.commons.utils.DebugRenderer
+import com.mbrlabs.mundus.editor.Mundus
 import com.mbrlabs.mundus.editor.core.keymap.KeyboardShortcutManager
 import com.mbrlabs.mundus.editor.core.keymap.KeymapKey
 import com.mbrlabs.mundus.editor.core.project.ProjectManager
@@ -27,6 +30,7 @@ import com.mbrlabs.mundus.editor.preferences.MundusPreferencesManager
 import com.mbrlabs.mundus.editor.tools.ToolManager
 import com.mbrlabs.mundus.editor.ui.UI
 import com.mbrlabs.mundus.editor.utils.KeyboardLayoutUtils
+import com.mbrlabs.mundus.editorcommons.events.TerrainRemovedEvent
 
 /**
  * @author Marcus Brummer
@@ -83,9 +87,31 @@ class ShortcutController(
             globalPrefManager.set(MundusPreferencesManager.GLOB_BOOL_DEBUG_RENDERER_ON, debugRenderer.isEnabled)
         } else if (shortcutManager.isPressed(KeymapKey.WIREFRAME_RENDER_MODE)) {
             projectManager.current().renderWireframe = !projectManager.current().renderWireframe
+        } else if (shortcutManager.isPressed(KeymapKey.DELETE)) {
+            deleteShortCut()
         }
-
         return false
     }
 
+    private fun deleteShortCut() {
+        val go = projectManager.current().currScene.currentSelection
+        if (go != null) {
+            UI.outline.removeGo(go)
+            if (toolManager.isSelected(go)) {
+                toolManager.setDefaultTool()
+            }
+
+            val terrainComponent: TerrainComponent? = go.findComponentByType(Component.Type.TERRAIN)
+            if (terrainComponent != null) {
+                projectManager.current().currScene.terrains.removeValue(terrainComponent, true)
+                Mundus.postEvent(TerrainRemovedEvent(terrainComponent))
+            }
+        } else {
+            val asset = UI.docker.assetsDock.getSelectedAsset()
+            asset?.let {
+                projectManager.current().assetManager.deleteAssetSafe(it, projectManager)
+                UI.docker.assetsDock.reloadAssets()
+            }
+        }
+    }
 }

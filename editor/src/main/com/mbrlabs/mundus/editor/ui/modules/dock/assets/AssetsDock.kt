@@ -138,6 +138,9 @@ class AssetsDock : Tab(false, false),
     fun clearSelection() {
         setSelected(null)
     }
+    fun getSelectedAsset(): Asset? {
+        return currentSelection?.asset
+    }
 
     private fun registerListeners() {
         deleteAsset.addListener(object : ClickListener() {

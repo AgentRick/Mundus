@@ -76,7 +76,7 @@ class KeyboardShortcutsSettingsTable : BaseSettingsTable() {
 
     override fun onInit() {
         keyboardShortcuts.clear()
-        for (keymapKey in KeymapKey.values()) {
+        for (keymapKey in KeymapKey.entries) {
             keyboardShortcuts.put(keymapKey, ModifiedKeycode(keyboardShortcutManager.getKey(keymapKey), false))
         }
 
@@ -131,6 +131,7 @@ class KeyboardShortcutsSettingsTable : BaseSettingsTable() {
         addShortcut(KeymapKey.SELECT_TOOL, "Select Tool", keyboardShortcutsTable)
         addShortcut(KeymapKey.DEBUG_RENDER_MODE, "Debug Render Mode", keyboardShortcutsTable)
         addShortcut(KeymapKey.WIREFRAME_RENDER_MODE, "Wireframe Mode", keyboardShortcutsTable)
+        addShortcut(KeymapKey.DELETE, "Delete Key", keyboardShortcutsTable)
     }
 
     private fun addShortcut(keymapKey: KeymapKey, desc: String, table: VisTable) {

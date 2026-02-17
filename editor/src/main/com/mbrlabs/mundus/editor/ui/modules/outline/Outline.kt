@@ -34,6 +34,7 @@ import com.mbrlabs.mundus.commons.scene3d.GameObject
 import com.mbrlabs.mundus.commons.scene3d.SceneGraph
 import com.mbrlabs.mundus.commons.scene3d.components.Component
 import com.mbrlabs.mundus.commons.scene3d.components.LightComponent
+import com.mbrlabs.mundus.commons.scene3d.components.TerrainComponent
 import com.mbrlabs.mundus.commons.utils.LightUtils
 import com.mbrlabs.mundus.editor.Mundus
 import com.mbrlabs.mundus.editor.Mundus.postEvent
@@ -49,6 +50,8 @@ import com.mbrlabs.mundus.editor.utils.Log
 import com.mbrlabs.mundus.editorcommons.events.GameObjectModifiedEvent
 import com.mbrlabs.mundus.editorcommons.events.ProjectChangedEvent
 import com.mbrlabs.mundus.editorcommons.events.SceneChangedEvent
+import com.mbrlabs.mundus.editorcommons.events.TerrainRemovedEvent
+import java.awt.event.KeyEvent
 
 /**
  * Outline shows overview about all game objects in the scene
@@ -78,7 +81,6 @@ class Outline : VisTable(),
     private val scrollPane: ScrollPane
     private val dragAndDrop: DragAndDrop = DragAndDrop()
     private val rightClickMenu: OutlineRightClickMenu
-
     private val toolManager: ToolManager = Mundus.inject()
     private val projectManager: ProjectManager = Mundus.inject()
     private val history: CommandHistory = Mundus.inject()
@@ -255,13 +257,12 @@ class Outline : VisTable(),
             }
 
         })
-
         tree.addListener(object : ClickListener() {
             override fun clicked(event: InputEvent?, x: Float, y: Float) {
                 if (tapCount != 2)
                     return
 
-                val go = tree.getNodeAt(y)?.value
+                val go = tree.overValue
 
                 if (go != null) {
                     val context = projectManager.current()
@@ -275,7 +276,6 @@ class Outline : VisTable(),
                     context.currScene.cam.lookAt(pos)
                     context.currScene.cam.up.set(Vector3.Y)
                 }
-
             }
 
             override fun touchDown(event: InputEvent?, x: Float, y: Float, pointer: Int, button: Int): Boolean {
@@ -292,7 +292,7 @@ class Outline : VisTable(),
                     return
                 }
 
-                val node = tree.getNodeAt(y)
+                val node = tree.overNode
                 var go: GameObject? = null
                 if (node != null) {
                     go = node.value
@@ -308,7 +308,7 @@ class Outline : VisTable(),
                 val selection = tree.getSelection()
                 if (selection != null && selection.size() > 0) {
                     val go = selection.first().value
-                    Mundus.postEvent(GameObjectSelectedEvent(go))
+                    postEvent(GameObjectSelectedEvent(go))
                 }
             }
         })

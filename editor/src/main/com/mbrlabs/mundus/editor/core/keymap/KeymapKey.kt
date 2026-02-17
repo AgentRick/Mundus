@@ -34,6 +34,8 @@ enum class KeymapKey(val type: KeymapKeyType) {
     DEBUG_RENDER_MODE(KeymapKeyType.KEY),
     WIREFRAME_RENDER_MODE(KeymapKeyType.KEY),
 
+    DELETE(KeymapKeyType.KEY),
+
     OBJECT_SELECTION(KeymapKeyType.BUTTON),
     LOOK_AROUND(KeymapKeyType.BUTTON);
 }
