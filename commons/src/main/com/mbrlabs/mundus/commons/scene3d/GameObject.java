@@ -56,7 +56,7 @@ public class GameObject extends SimpleNode<GameObject> implements Iterable<GameO
         this.sceneGraph = sceneGraph;
         this.name = (name == null) ? DEFAULT_NAME : name;
         this.active = true;
-        this.tags = null;
+        this.tags = new Array<>();
         this.components = new Array<Component>(3);
     }
 
@@ -75,7 +75,7 @@ public class GameObject extends SimpleNode<GameObject> implements Iterable<GameO
         this.active = gameObject.active;
 
         // copy tags
-        if (tags != null) {
+        if (!tags.isEmpty()) {
             Array<String> newTags = new Array<String>();
             for (String t : gameObject.tags) {
                 newTags.add(t);
@@ -130,10 +130,6 @@ public class GameObject extends SimpleNode<GameObject> implements Iterable<GameO
      *            tag to add
      */
     public void addTag(String tag) {
-        if (this.tags == null) {
-            this.tags = new Array<String>(2);
-        }
-
         this.tags.add(tag);
     }
 
@@ -326,7 +322,7 @@ public class GameObject extends SimpleNode<GameObject> implements Iterable<GameO
     public Array<GameObject> findChildrenByTag(String tag, Array<GameObject> objects) {
 
         for (GameObject go : this) {
-            if (go.tags != null && go.tags.contains(tag, false)) {
+            if (!go.tags.isEmpty() && go.tags.contains(tag, false)) {
                 objects.add(go);
             }
         }

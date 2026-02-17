@@ -29,6 +29,7 @@ import com.mbrlabs.mundus.editor.core.project.ProjectManager
 import com.mbrlabs.mundus.editor.events.SceneGraphChangedEvent
 import com.mbrlabs.mundus.editor.history.CommandHistory
 import com.mbrlabs.mundus.editor.history.commands.GameObjectActiveCommand
+import com.mbrlabs.mundus.editor.ui.widgets.ToolTipLabel
 
 /**
  * @author Marcus Brummer
@@ -61,7 +62,7 @@ class IdentifierWidget : VisTable() {
     private fun setupUI() {
         add(active).padBottom(4f).left().top()
         add(name).padBottom(4f).left().top().expandX().fillX().row()
-        add(VisLabel("Tag: ")).left().top()
+        add(ToolTipLabel("tags: ", "multiple tags separated by comma \n example: (tag1, tag2)")).left().top()
         add(tag).top().left().expandX().fillX().row()
     }
 
@@ -88,11 +89,30 @@ class IdentifierWidget : VisTable() {
             }
         })
 
+
+        tag.addListener(object : ChangeListener() {
+            override fun changed(event: ChangeEvent?, actor: Actor?) {
+                val projectContext = projectManager.current()
+                val selectedGO = projectContext.currScene.currentSelection ?: return
+
+                val tags = tag.text.split(",".toRegex())
+                if (tag.text.isEmpty() || tag.text == "Untagged") return
+                selectedGO.tags.clear()
+                tags.forEach { selectedGO.tags.add(it) }
+
+                Mundus.postEvent(SceneGraphChangedEvent())
+            }
+        })
     }
 
     fun setValues(go: GameObject) {
         active.isChecked = go.active
         name.text = go.name
+        if (!go.tags.isEmpty) {
+            tag.text = go.tags.joinToString(",")
+        } else {
+            tag.text = "Untagged"
+        }
     }
 
 }
