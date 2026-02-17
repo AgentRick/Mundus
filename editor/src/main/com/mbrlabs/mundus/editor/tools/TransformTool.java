@@ -34,11 +34,11 @@ public abstract class TransformTool extends SelectionTool {
         TRANSFORM_X, TRANSFORM_Y, TRANSFORM_Z, TRANSFORM_XZ, TRANSFORM_XYZ, IDLE
     }
 
-    protected static final int X_HANDLE_ID = 0;
-    protected static final int Y_HANDLE_ID = 1;
-    protected static final int Z_HANDLE_ID = 2;
-    protected static final int XZ_HANDLE_ID = 3;
-    protected static final int XYZ_HANDLE_ID = 4;
+    protected static final int X_HANDLE_ID = 1;
+    protected static final int Y_HANDLE_ID = 2;
+    protected static final int Z_HANDLE_ID = 3;
+    protected static final int XZ_HANDLE_ID = 4;
+    protected static final int XYZ_HANDLE_ID = 5;
 
     protected static Color COLOR_X = Color.RED;
     protected static Color COLOR_Y = Color.GREEN;

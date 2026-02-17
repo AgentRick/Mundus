@@ -118,7 +118,6 @@ class Editor : Lwjgl3WindowAdapter(), ApplicationListener,
         debugRenderer.isEnabled = globalPreferencesManager.getBoolean(MundusPreferencesManager.GLOB_BOOL_DEBUG_RENDERER_ON, false)
         debugRenderer.isAppearOnTop = globalPreferencesManager.getBoolean(MundusPreferencesManager.GLOB_BOOL_DEBUG_RENDERER_DEPTH_OFF, false)
         debugRenderer.isShowFacingArrow = globalPreferencesManager.getBoolean(MundusPreferencesManager.GLOB_BOOL_DEBUG_FACING_ARROW, false)
-        // TODO dispose this
         val axesModel = UsefulMeshs.createAxes()
         axesInstance = ModelInstance(axesModel)
 
@@ -378,7 +377,7 @@ class Editor : Lwjgl3WindowAdapter(), ApplicationListener,
 
     override fun dispose() {
         debugRenderer.dispose()
-
+        axesInstance.model.dispose()
         pluginManager.getExtensions(DisposeExtension::class.java).forEach {
             try {
                 it.dispose()

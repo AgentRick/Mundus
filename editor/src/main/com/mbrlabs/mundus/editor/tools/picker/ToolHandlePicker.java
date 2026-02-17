@@ -41,16 +41,24 @@ public class ToolHandlePicker extends BasePicker {
         Pixmap pm = getFrameBufferPixmap(scene.viewport);
 
         int x = screenX - scene.viewport.getScreenX();
+        //int y = screenY - scene.viewport.getScreenY();
         int y = screenY - (Gdx.graphics.getHeight() - (scene.viewport.getScreenY() + scene.viewport.getScreenHeight()));
+
+        int pmY = pm.getHeight() - y;
+        if (x < 0 || x >= pm.getWidth() || pmY < 0 || pmY >= pm.getHeight()) {
+            pm.dispose();
+            return null;
+        }
 
         int id = PickerColorEncoder.decode(pm.getPixel(x, y));
         Log.trace("ToolHandlePicker", "Picking handle with id {}", id);
         for (ToolHandle handle : handles) {
             if (handle.getId() == id) {
+                pm.dispose();
                 return handle;
             }
         }
-
+        pm.dispose();
         return null;
     }
 
