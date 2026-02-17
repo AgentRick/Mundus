@@ -38,8 +38,8 @@ public class GameObject extends SimpleNode<GameObject> implements Iterable<GameO
     public boolean active;
     public boolean scaleChanged = true; // true by default to force initial calculations
     public boolean hasWaterComponent = false;
-    private Array<String> tags;
-    private Array<Component> components;
+    private final Array<String> tags;
+    private final Array<Component> components;
 
     public final SceneGraph sceneGraph;
 
@@ -57,7 +57,7 @@ public class GameObject extends SimpleNode<GameObject> implements Iterable<GameO
         this.name = (name == null) ? DEFAULT_NAME : name;
         this.active = true;
         this.tags = new Array<>();
-        this.components = new Array<Component>(3);
+        this.components = new Array<>(3);
     }
 
     /**
@@ -75,12 +75,14 @@ public class GameObject extends SimpleNode<GameObject> implements Iterable<GameO
         this.active = gameObject.active;
 
         // copy tags
-        if (!tags.isEmpty()) {
+        if (!gameObject.tags.isEmpty()) {
             Array<String> newTags = new Array<String>();
             for (String t : gameObject.tags) {
                 newTags.add(t);
             }
             this.tags = newTags;
+        } else {
+            this.tags = new Array<>();
         }
 
         // copy components
