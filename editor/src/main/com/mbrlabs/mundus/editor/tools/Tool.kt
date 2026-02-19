@@ -21,6 +21,7 @@ import com.badlogic.gdx.graphics.g3d.Environment
 import com.badlogic.gdx.graphics.g3d.Shader
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.utils.Disposable
+import com.mbrlabs.mundus.commons.assets.ModelAsset
 import com.mbrlabs.mundus.editor.core.project.ProjectManager
 import com.mbrlabs.mundus.editor.history.CommandHistory
 import com.mbrlabs.mundus.editor.shader.Shaders
@@ -43,5 +44,4 @@ abstract class Tool(var projectManager: ProjectManager,
     abstract fun act()
     abstract fun onActivated()
     abstract fun onDisabled()
-
 }

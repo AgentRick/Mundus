@@ -41,7 +41,7 @@ public abstract class BaseNode<T extends BaseNode> implements Node<T> {
 
     @Override
     public void addChild(T child) {
-        if (children == null) children = new Array<T>();
+        if (children == null) initChildrenArray();
         children.add(child);
         child.setParent(this);
     }
@@ -51,7 +51,6 @@ public abstract class BaseNode<T extends BaseNode> implements Node<T> {
         for (GameObject go : other) {
             if (go.id == this.id) return true;
         }
-
         return false;
     }
 

@@ -28,9 +28,13 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
+import com.kotcrab.vis.ui.util.dialog.Dialogs;
+import com.mbrlabs.mundus.commons.assets.ModelAsset;
 import com.mbrlabs.mundus.commons.assets.TerrainAsset;
 import com.mbrlabs.mundus.commons.scene3d.GameObject;
+import com.mbrlabs.mundus.commons.scene3d.InvalidComponentException;
 import com.mbrlabs.mundus.commons.scene3d.components.Component;
+import com.mbrlabs.mundus.commons.scene3d.components.ModelComponent;
 import com.mbrlabs.mundus.commons.scene3d.components.TerrainComponent;
 import com.mbrlabs.mundus.commons.terrain.SplatMap;
 import com.mbrlabs.mundus.commons.terrain.SplatTexture;
@@ -41,23 +45,19 @@ import com.mbrlabs.mundus.editor.Mundus;
 import com.mbrlabs.mundus.editor.core.project.ProjectManager;
 import com.mbrlabs.mundus.editor.events.GameObjectSelectedEvent;
 import com.mbrlabs.mundus.editor.events.GlobalBrushSettingsChangedEvent;
+import com.mbrlabs.mundus.editor.events.SceneGraphChangedEvent;
 import com.mbrlabs.mundus.editor.history.CommandHistory;
 import com.mbrlabs.mundus.editor.history.commands.TerrainsHeightCommand;
 import com.mbrlabs.mundus.editor.history.commands.TerrainsPaintCommand;
+import com.mbrlabs.mundus.editor.scene3d.components.PickableModelComponent;
 import com.mbrlabs.mundus.editor.shader.EditorPBRTerrainShader;
 import com.mbrlabs.mundus.editor.tools.Tool;
 import com.mbrlabs.mundus.editor.tools.picker.GameObjectPicker;
-import com.mbrlabs.mundus.editor.tools.terrain.FlattenTool;
-import com.mbrlabs.mundus.editor.tools.terrain.RaiseLowerTool;
-import com.mbrlabs.mundus.editor.tools.terrain.SmoothTool;
-import com.mbrlabs.mundus.editor.tools.terrain.TerrainTool;
+import com.mbrlabs.mundus.editor.tools.terrain.*;
 import com.mbrlabs.mundus.editor.ui.UI;
 import com.mbrlabs.mundus.editorcommons.events.TerrainVerticesChangedEvent;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A Terrain Brush can modify the terrainAsset in various ways (BrushMode).
@@ -83,7 +83,8 @@ public abstract class TerrainBrush extends Tool {
         /** Paints on the splatmap of the terrainAsset. */
         PAINT,
         /** Create a ramp between two points. */
-        RAMP
+        RAMP,
+        Model_Brush
     }
 
     /**
@@ -156,9 +157,11 @@ public abstract class TerrainBrush extends Tool {
     private static final TerrainTool raiseLowerTool = new RaiseLowerTool();
     private static final TerrainTool flattenTool = new FlattenTool();
     private static final TerrainTool smoothTool = new SmoothTool();
+    private static final ModelPlacementBrushTool modelPlacementTool = new ModelPlacementBrushTool();
     private static boolean optimizeTerrainUpdates = false;
     private static float strength = 0.5f;
     private static float heightSample = 0f;
+    private static Float density = 5f;
     private static SplatTexture.Channel paintChannel;
 
     // individual brush settings
@@ -200,6 +203,10 @@ public abstract class TerrainBrush extends Tool {
         pixmapCenter = brushPixmap.getWidth() / 2;
     }
 
+    public TerrainComponent getTerrainComponent() {
+        return terrainComponent;
+    }
+
     @Override
     public void act() {
         if (action == null) return;
@@ -237,6 +244,8 @@ public abstract class TerrainBrush extends Tool {
             smoothTool.act(this);
         } else if (mode == BrushMode.RAMP) {
             createRamp();
+        } else if (mode == BrushMode.Model_Brush) {
+            modelPlacementTool.act(this);
         }
 
     }
@@ -456,7 +465,7 @@ public abstract class TerrainBrush extends Tool {
      * @param comparison The comparison to use
      * @param updateNeighbors Whether to update the neighbors of the terrain
      */
-    public void modifyTerrain(TerrainComponent terrainComponent, TerrainModifyAction modifier, TerrainModifyComparison comparison, boolean updateNeighbors) {
+    private void modifyTerrain(TerrainComponent terrainComponent, TerrainModifyAction modifier, TerrainModifyComparison comparison, boolean updateNeighbors) {
         Vector3 localBrushPos = Pools.vector3Pool.obtain();
 
         if (updateNeighbors) {
@@ -509,6 +518,103 @@ public abstract class TerrainBrush extends Tool {
         updateTerrain(terrain);
         terrainHeightModified = true;
         getProjectManager().current().assetManager.addModifiedAsset(terrainComponent.getTerrainAsset());
+    }
+
+    private final Random random = new Random();
+
+    public void placeModels(TerrainModifyComparison comparison, float density, Array<ModelAsset> models, boolean updateNeighbors) {
+        placeModels(terrainComponent, comparison, density, models, updateNeighbors);
+    }
+
+    private void placeModels(TerrainComponent terrainComponent, TerrainModifyComparison comparison, float density, Array<ModelAsset> models, boolean updateNeighbors) {
+        Vector3 localBrushPos = Pools.vector3Pool.obtain();
+        if (models.isEmpty()) return;
+
+        // 1. Logik für Nachbar-Terrains (kann fast identisch übernommen werden)
+        if (updateNeighbors) {
+            for (TerrainComponent neighbor : getAllConnectedTerrains()) {
+                if (neighbor == terrainComponent) continue;
+                float scaledRadius = getScaledRadius(neighbor);
+                if (brushAffectsTerrain(brushPos, scaledRadius, neighbor)) {
+                    placeModels(neighbor, comparison, density, models,false);
+                }
+            }
+        }
+
+        getBrushLocalPosition(terrainComponent, localBrushPos);
+        Terrain terrain = terrainComponent.getTerrainAsset().getTerrain();
+        // Nutzt die vorhandene Range-Berechnung aus TerrainBrush
+        BrushRange range = calculateBrushRange(terrain, localBrushPos);
+
+        // 2. Über die Fläche iterieren
+        for (int x = range.minX; x < range.maxX; x++) {
+            System.out.println("x: " + x);
+            for (int z = range.minZ; z < range.maxZ; z++) {
+                System.out.println("y: " + z);
+                // WICHTIG: Nicht jeden Vertex nehmen, sondern zufällig entscheiden
+                if (random.nextFloat() > 0.3f) continue;
+
+                final Vector3 vertexPos = terrain.getVertexPosition(tVec0, x, z);
+                localBrushPos.y = vertexPos.y;
+
+                // Prüfen, ob der Punkt im Brush-Radius liegt (wie in modifyTerrain)
+                if (comparison.compare(this, vertexPos, localBrushPos)) {
+
+                    // Welt-Position berechnen (Local to World)
+                    Vector3 worldPos = vertexPos.cpy().mul(terrainComponent.getModelInstance().transform);
+                    if (!hasMinimumDistance(worldPos, density)) continue;
+
+                    ModelAsset rndModelAsset = models.random();
+                    placeGameObject(rndModelAsset, worldPos, getProjectManager());
+                }
+            }
+        }
+        Mundus.INSTANCE.postEvent(new SceneGraphChangedEvent());
+        Pools.vector3Pool.free(localBrushPos);
+    }
+    private boolean hasMinimumDistance(Vector3 position, float minDistance) {
+        // Greifen auf die aktuelle Szene zu
+            Array<GameObject> gameObjects = getProjectManager().current().currScene.sceneGraph.getGameObjects();
+
+        for (GameObject go : gameObjects) {
+            Vector3 goPos = Pools.vector3Pool.obtain();
+            go.getPosition(goPos);
+
+            float distance = position.dst(goPos);
+            Pools.vector3Pool.free(goPos);
+
+            if (distance < minDistance) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void placeGameObject(ModelAsset asset, Vector3 pos, ProjectManager projectManager) {
+        // Hier greifen wir auf den ProjectManager zu, um ein neues GameObject in der Szene zu erstellen.
+        // Dies ist Pseudocode, der an deine Mundus-Version angepasst werden muss (SceneGraph Logik).
+
+        int uniqueId = projectManager.current().obtainID();
+        GameObject newGo = new GameObject(getProjectManager().current().currScene.sceneGraph, asset.getName(), uniqueId);
+
+        // Transformieren
+        newGo.translate(pos.x, pos.y, pos.z);
+
+        // Model Component hinzufügen
+        ModelComponent modelComponent = new PickableModelComponent(newGo);
+        modelComponent.setModel(asset, true);
+
+        try {
+            newGo.addComponent(modelComponent);
+        } catch (InvalidComponentException e) {
+            Dialogs.showErrorDialog(UI.INSTANCE, e.getMessage());
+            return;
+        }
+        // Zur aktuellen Szene hinzufügen
+        projectManager.current().currScene.sceneGraph.addGameObject(newGo);
+
+        // WICHTIG: Füge hier idealerweise einen "CreateCommand" zur History hinzu,
+        // damit man STRG+Z machen kann.
     }
 
     private void updateTerrain(Terrain terrain) {
@@ -590,6 +696,14 @@ public abstract class TerrainBrush extends Tool {
         Mundus.INSTANCE.postEvent(brushSettingsChangedEvent);
     }
 
+    public static float getDensity() {
+        return density;
+    }
+
+    public static void setDensity(float density) {
+        TerrainBrush.density = density;
+    }
+
     public static float getHeightSample() {
         return heightSample;
     }
@@ -624,16 +738,11 @@ public abstract class TerrainBrush extends Tool {
     }
 
     public boolean supportsMode(BrushMode mode) {
-        switch (mode) {
-            case RAISE_LOWER:
-            case FLATTEN:
-            case PAINT:
-            case SMOOTH:
-            case RAMP:
-                return true;
-        }
+        return switch (mode) {
+            case RAISE_LOWER, FLATTEN, PAINT, SMOOTH, RAMP, Model_Brush -> true;
+            default -> false;
+        };
 
-        return false;
     }
 
     private Vector3 getTerrainPosition(Vector3 value) {

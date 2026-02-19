@@ -26,10 +26,10 @@ import com.kotcrab.vis.ui.widget.VisTextField;
  */
 public class TextFieldWithLabel extends VisTable {
 
-    private int width = -1;
+    private final int width;
 
     protected VisTextField textField;
-    private VisLabel label;
+    private final VisLabel label;
 
     public TextFieldWithLabel(String labelText, int width) {
         super();

@@ -29,11 +29,7 @@ import com.mbrlabs.mundus.commons.mapper.CustomComponentConverter;
 import com.mbrlabs.mundus.commons.mapper.CustomPropertiesComponentConverter;
 import com.mbrlabs.mundus.commons.scene3d.GameObject;
 import com.mbrlabs.mundus.commons.scene3d.SceneGraph;
-import com.mbrlabs.mundus.commons.scene3d.components.Component;
-import com.mbrlabs.mundus.commons.scene3d.components.CustomPropertiesComponent;
-import com.mbrlabs.mundus.commons.scene3d.components.LightComponent;
-import com.mbrlabs.mundus.commons.scene3d.components.TerrainComponent;
-import com.mbrlabs.mundus.commons.scene3d.components.TerrainManagerComponent;
+import com.mbrlabs.mundus.commons.scene3d.components.*;
 import com.mbrlabs.mundus.commons.utils.AssetUtils;
 import com.mbrlabs.mundus.editor.scene3d.components.PickableModelComponent;
 import com.mbrlabs.mundus.editor.scene3d.components.PickableTerrainComponent;
@@ -211,25 +207,25 @@ public class GameObjectConverter {
         transform[9] = tempVec.z;
 
         // convert components
-        for (Component c : go.getComponents()) {
-            if (c.getType() == Component.Type.MODEL) {
-                descriptor.setModelComponent(ModelComponentConverter.convert((PickableModelComponent) c));
-            } else if (c.getType() == Component.Type.TERRAIN) {
-                descriptor.setTerrainComponent(TerrainComponentConverter.convert((PickableTerrainComponent) c));
-            } else if (c.getType() == Component.Type.WATER) {
-                descriptor.setWaterComponent(WaterComponentConverter.convert((PickableWaterComponent) c));
-            } else if (c.getType() == Component.Type.LIGHT) {
-                descriptor.setLightComponent(PickableLightComponentConverter.convert((LightComponent) c));
-            } else if (c.getType() == Component.Type.CUSTOM_PROPERTIES) {
-                descriptor.setCustomPropertiesComponent(CustomPropertiesComponentConverter.convert((CustomPropertiesComponent) c));
-            } else if (c.getType() == Component.Type.TERRAIN_MANAGER) {
-                descriptor.setTerrainManagerComponent(TerrainManagerComponentConverter.convert((TerrainManagerComponent) c));
-            } else if (c.getType() != null) {
+        for (Component component : go.getComponents()) {
+            if (component.getType() == Component.Type.MODEL) {
+                descriptor.setModelComponent(ModelComponentConverter.convert((PickableModelComponent) component));
+            } else if (component.getType() == Component.Type.TERRAIN) {
+                descriptor.setTerrainComponent(TerrainComponentConverter.convert((PickableTerrainComponent) component));
+            } else if (component.getType() == Component.Type.WATER) {
+                descriptor.setWaterComponent(WaterComponentConverter.convert((PickableWaterComponent) component));
+            } else if (component.getType() == Component.Type.LIGHT) {
+                descriptor.setLightComponent(PickableLightComponentConverter.convert((LightComponent) component));
+            } else if (component.getType() == Component.Type.CUSTOM_PROPERTIES) {
+                descriptor.setCustomPropertiesComponent(CustomPropertiesComponentConverter.convert((CustomPropertiesComponent) component));
+            } else if (component.getType() == Component.Type.TERRAIN_MANAGER) {
+                descriptor.setTerrainManagerComponent(TerrainManagerComponentConverter.convert((TerrainManagerComponent) component));
+            } else if (component.getType() != null) {
                 for (int i = 0; i < customComponentConverters.size; ++i) {
                     final CustomComponentConverter converter = customComponentConverters.get(i);
 
-                    if (c.getType() == converter.getComponentType()) {
-                        final OrderedMap<String, String> customComponentProperties = converter.convert(c);
+                    if (component.getType() == converter.getComponentType()) {
+                        final OrderedMap<String, String> customComponentProperties = converter.convert(component);
 
                         if (customComponentProperties != null) {
                             if (descriptor.getCustomComponents() == null) {
@@ -237,9 +233,9 @@ public class GameObjectConverter {
                             }
 
                             final CustomComponentDTO customComponentDTO = new CustomComponentDTO();
-                            customComponentDTO.setComponentType(c.getType().name());
+                            customComponentDTO.setComponentType(component.getType().name());
                             customComponentDTO.setProperties(customComponentProperties);
-                            customComponentDTO.setAssetIds(converter.getAssetIds(c));
+                            customComponentDTO.setAssetIds(converter.getAssetIds(component));
 
                             descriptor.getCustomComponents().add(customComponentDTO);
                         }

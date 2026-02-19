@@ -296,8 +296,8 @@ class OutlineRightClickMenu(outline: Outline) : PopupMenu() {
         private val addCube: MenuItem = MenuItem("Add Cube")
 
         init {
-            addItem(addEmpty)
             addItem(addTerrain)
+            addItem(addEmpty)
             addItem(addWater)
             addItem(addPlane)
             addItem(addCube)
